@@ -41,7 +41,7 @@ def _safe_read(vault: MedallionVault, schema: str, table: str) -> pl.DataFrame |
 
 
 def page_overview(vault: MedallionVault) -> None:
-    st.title("🛡️ Aegis Data Foundry")
+    st.title("🛡️ Agentic Aegis")
     st.caption("Self-healing ETL — autonomous agents keep your medallion pipeline clean.")
 
     runs = vault.quality_history()
