@@ -1,0 +1,26 @@
+# Optional extras for Agentic Aegis
+# ====================================
+# The base `requirements.txt` install is untouched and keeps working exactly
+# as before. Install this file ONLY if you want the newer connector /
+# observability / NL-query / streaming features:
+#
+#   pip install -r requirements.txt
+#   pip install -r requirements-extra.txt
+#
+# Every feature that depends on these packages degrades to a clear,
+# actionable error (never a crash) if you skip this file.
+
+# -- multi-source connectors (Postgres, MySQL, S3) ----------------------------
+sqlalchemy>=2.0
+psycopg2-binary>=2.9      # Postgres driver
+pymysql>=1.1              # MySQL driver
+boto3>=1.34               # S3 access
+
+# -- observability -------------------------------------------------------------
+prometheus-client>=0.20   # real Prometheus metrics instead of the in-memory fallback
+
+# -- natural-language querying (QueryAgent) -------------------------------------
+anthropic>=0.34
+
+# -- streaming ingestion ---------------------------------------------------------
+watchdog>=4.0             # event-driven file watching instead of polling

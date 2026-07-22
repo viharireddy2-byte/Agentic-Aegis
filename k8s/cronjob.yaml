@@ -1,0 +1,44 @@
+# Runs the full Scout -> Sentinel -> Healer -> Oracle -> medallion pipeline
+# on a schedule, sharing the same PVC as the dashboard so the dashboard picks
+# up each run's results immediately.
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: aegis-pipeline
+  namespace: agentic-aegis
+spec:
+  schedule: "0 2 * * *"  # 2am daily
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          serviceAccountName: aegis-runner
+          restartPolicy: Never
+          containers:
+            - name: aegis-pipeline
+              image: agentic-aegis:latest
+              command: ["python", "-m", "src.orchestration.foundry_flows"]
+              envFrom:
+                - configMapRef:
+                    name: aegis-config
+                - secretRef:
+                    name: aegis-secrets
+              volumeMounts:
+                - name: aegis-data
+                  mountPath: /app/data
+              resources:
+                requests:
+                  cpu: "500m"
+                  memory: "1Gi"
+                limits:
+                  cpu: "2"
+                  memory: "2Gi"
+          volumes:
+            - name: aegis-data
+              persistentVolumeClaim:
+                claimName: aegis-data

@@ -1,0 +1,11 @@
+line-length = 110
+target-version = "py310"
+
+[lint]
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501",  # long lines are common in this codebase's SQL/docstrings; length is a soft target
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["F401"]

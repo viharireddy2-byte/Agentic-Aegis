@@ -1,0 +1,33 @@
+# Non-sensitive settings as a ConfigMap. Anything secret (DB passwords, the
+# Anthropic API key, the alert webhook URL) goes in a Secret instead — see
+# the template below. Never put real values in aegis-secrets.yaml; create
+# the Secret out-of-band (kubectl create secret / a secrets manager) and
+# keep this file as documentation of the expected keys.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aegis-config
+  namespace: agentic-aegis
+data:
+  AEGIS_DB_PATH: "/app/data/foundry.duckdb"
+  AEGIS_SOURCE_TYPE: "csv"
+  AEGIS_METRICS_ENABLED: "true"
+  AEGIS_ALERT_QUALITY_THRESHOLD: "75.0"
+  AEGIS_ALERT_ANOMALY_PCT_THRESHOLD: "10.0"
+---
+# Template only — apply your own Secret with real values, e.g.:
+#   kubectl create secret generic aegis-secrets -n agentic-aegis \
+#     --from-literal=AEGIS_PG_PASSWORD=*** \
+#     --from-literal=ANTHROPIC_API_KEY=*** \
+#     --from-literal=AEGIS_ALERT_WEBHOOK_URL=***
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aegis-secrets
+  namespace: agentic-aegis
+type: Opaque
+stringData:
+  AEGIS_PG_PASSWORD: "CHANGE_ME"
+  ANTHROPIC_API_KEY: "CHANGE_ME"
+  AEGIS_ALERT_WEBHOOK_URL: "CHANGE_ME"

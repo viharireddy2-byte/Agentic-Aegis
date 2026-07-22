@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aegis-dashboard
+  namespace: agentic-aegis
+  labels:
+    app: aegis-dashboard
+spec:
+  replicas: 1  # DuckDB is single-writer; scale the dashboard only if it moves to a shared backend
+  selector:
+    matchLabels:
+      app: aegis-dashboard
+  template:
+    metadata:
+      labels:
+        app: aegis-dashboard
+    spec:
+      serviceAccountName: aegis-runner
+      containers:
+        - name: aegis-dashboard
+          image: agentic-aegis:latest
+          command: ["streamlit", "run", "dashboards/foundry_dashboard.py",
+                    "--server.address=0.0.0.0", "--server.port=8080"]
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: aegis-config
+            - secretRef:
+                name: aegis-secrets
+          volumeMounts:
+            - name: aegis-data
+              mountPath: /app/data
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 20
+      volumes:
+        - name: aegis-data
+          persistentVolumeClaim:
+            claimName: aegis-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aegis-dashboard
+  namespace: agentic-aegis
+spec:
+  selector:
+    app: aegis-dashboard
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP

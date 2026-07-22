@@ -1,0 +1,38 @@
+# Local dev stack: the Aegis dashboard, plus a throwaway Postgres instance so
+# you can exercise PostgresSource without wiring up real infrastructure.
+#
+#   docker compose up --build
+#   docker compose run --rm aegis python scripts/generate_sample_data.py --rows 1000
+#   docker compose run --rm aegis python -m src.orchestration.foundry_flows
+#
+# To try the Postgres connector instead of the sample CSV:
+#   docker compose run --rm -e AEGIS_SOURCE_TYPE=postgres \
+#     -e AEGIS_PG_HOST=postgres -e AEGIS_PG_DATABASE=aegis \
+#     -e AEGIS_PG_USER=aegis -e AEGIS_PG_PASSWORD=aegis -e AEGIS_PG_TABLE=orders \
+#     aegis python -m src.orchestration.foundry_flows
+
+services:
+  aegis:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - AEGIS_DB_PATH=data/foundry.duckdb
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=aegis
+      - POSTGRES_USER=aegis
+      - POSTGRES_PASSWORD=aegis
+    ports:
+      - "5432:5432"
+    volumes:
+      - aegis-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  aegis-postgres-data:
